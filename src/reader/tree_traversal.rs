@@ -42,27 +42,29 @@ fn traverse_elements(tree: &Element, level: u32) {
 fn traverse_generics(tree: &Element, level: u32) {
     print_header(level + 2, ' ', ' ');
     print!("{}: ", tree.name);
+    if let Some(value) = tree.get_text() {
+        println!("{}", value);
+        return;
+    }
     if let Some(value) = tree.get_child("SHORT-NAME") {
-        println!("{}", value.get_text().expect("Invalid value"));
+        print!("{}", value.get_text().expect("Invalid value"));
     }
     if tree.attributes.len() != 0 {
         for (key, value) in &tree.attributes {
-            print!("{} : {} |", key, value);
+            print!(" | {} => {} |", key, value);
         }
-        println!();
+        print!(":")
     }
+    println!();
     for item in &tree.children {
-        if let Some(name) = item.as_element() {
-            if let Some(name) = name.get_text() {
-                if name == "SHORT-NAME" {
-                    continue;
-                }
+        if let Some(subtree) = item.as_element() {
+            match subtree.name.as_str() {
+                "SHORT-NAME" => { continue; }
+                _ => { traverse_generics(subtree, level + 4); }
             }
         }
-        if let Some(subtree) = item.as_element() {
-            traverse_generics(subtree, level + 4);
-        }
     }
+    //println!("{:?}", tree);
 }
 
 pub fn traverse_tree(tree: &Element, level: u32) {
